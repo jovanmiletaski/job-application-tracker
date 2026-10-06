@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { Status } from "@/app/generated/prisma/client";
 import { createApplication, updateStatus, deleteApplication } from "./actions";
@@ -9,7 +10,15 @@ export default async function Home() {
 
   return (
     <main className="p-8">
-      <h1 className="p-8 text-3xl font-bold">Job Tracker</h1>
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-3xl font-bold">Job Tracker</h1>
+        <Link
+          href="/listings"
+          className="text-sm text-blue-600 hover:underline"
+        >
+          Browse job listings
+        </Link>
+      </div>
       <form action={createApplication} className="mb-8 grid gap-3 sm:grid-cols-2">
         <input
           name="company"

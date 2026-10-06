@@ -3,6 +3,8 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { Status } from "@/app/generated/prisma/client";
+import { SOURCES } from "@/lib/sources";
+import { fetchListings } from "@/lib/feed";
 
 export async function createApplication(formData: FormData) {
   const company = formData.get("company") as string;
@@ -48,4 +50,57 @@ export async function deleteApplication(formData: FormData) {
   });
 
   revalidatePath("/");
+}
+
+export async function syncListings() {
+  for (const source of SOURCES) {
+    const listings = await fetchListings(source);
+
+    for (const listing of listings) {
+      await prisma.jobListing.upsert({
+        where: {
+          source_externalId: {
+            source: listing.source,
+            externalId: listing.externalId,
+          },
+        },
+        create: listing,
+        update: {
+          company: listing.company,
+          position: listing.position,
+          url: listing.url,
+          location: listing.location,
+          category: listing.category,
+        },
+      });
+    }
+  }
+  revalidatePath("/listings");
+}
+
+export async function createFromListing(formData: FormData) {
+  const id = formData.get("id") as string;
+
+  const listing = await prisma.jobListing.findUniqueOrThrow({
+    where: { id },
+  });
+
+  await prisma.$transaction(async (tx) => {
+    const application = await tx.application.create({
+      data: {
+        company: listing.company,
+        position: listing.position,
+        jobUrl: listing.url,
+        source: listing.source,
+        location: listing.location,
+      },
+    });
+
+    await tx.jobListing.update({
+      where: { id: listing.id },
+      data: { applicationId: application.id },
+    });
+  });
+  revalidatePath("/");
+  revalidatePath("/listings");
 }
