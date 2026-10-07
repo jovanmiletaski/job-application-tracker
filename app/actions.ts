@@ -52,27 +52,35 @@ export async function deleteApplication(formData: FormData) {
   revalidatePath("/");
 }
 
+const BATCH_SIZE = 100;
+
 export async function syncListings() {
   for (const source of SOURCES) {
     const listings = await fetchListings(source);
 
-    for (const listing of listings) {
-      await prisma.jobListing.upsert({
-        where: {
-          source_externalId: {
-            source: listing.source,
-            externalId: listing.externalId,
-          },
-        },
-        create: listing,
-        update: {
-          company: listing.company,
-          position: listing.position,
-          url: listing.url,
-          location: listing.location,
-          category: listing.category,
-        },
-      });
+    for (let i = 0; i < listings.length; i += BATCH_SIZE) {
+      const batch = listings.slice(i, i + BATCH_SIZE);
+
+      await prisma.$transaction(
+        batch.map((listing) =>
+          prisma.jobListing.upsert({
+            where: {
+              source_externalId: {
+                source: listing.source,
+                externalId: listing.externalId,
+              },
+            },
+            create: listing,
+            update: {
+              company: listing.company,
+              position: listing.position,
+              url: listing.url,
+              location: listing.location,
+              category: listing.category,
+            },
+          }),
+        ),
+      );
     }
   }
   revalidatePath("/listings");
