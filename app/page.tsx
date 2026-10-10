@@ -1,9 +1,12 @@
 import Link from "next/link";
+import { connection } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { Status } from "@/app/generated/prisma/client";
 import { createApplication, updateStatus, deleteApplication } from "./actions";
 
 export default async function Home() {
+  await connection();
+
   const applications = await prisma.application.findMany({
     orderBy: { appliedDate: "desc" },
   });
@@ -19,7 +22,10 @@ export default async function Home() {
           Browse job listings
         </Link>
       </div>
-      <form action={createApplication} className="mb-8 grid gap-3 sm:grid-cols-2">
+      <form
+        action={createApplication}
+        className="mb-8 grid gap-3 sm:grid-cols-2"
+      >
         <input
           name="company"
           placeholder="Company"
@@ -74,15 +80,30 @@ export default async function Home() {
             <li key={app.id} className="border rounded-lg p-4">
               <p className="font-semibold">{app.company}</p>
               <p>{app.position}</p>
-              {app.location && (<p className="text-sm text-gray-500">Location: {app.location}</p>)}
-              {app.salary && (<p className="text-sm text-gray-500">Salary: {app.salary}</p>)}
-              {app.source && (<p className="text-sm text-gray-500">Source: {app.source}</p>)}
-              {app.jobUrl && (<a href = {app.jobUrl}
-              target = "_blank"
-              rel = "noopener noreferrer"
-              className="text-sm text-blue-600 hover:underline"
-              >Job Posting</a>)}
-              {app.notes && (<p className="text-sm text-gray-500">Notes: {app.notes}</p>)}
+              {app.location && (
+                <p className="text-sm text-gray-500">
+                  Location: {app.location}
+                </p>
+              )}
+              {app.salary && (
+                <p className="text-sm text-gray-500">Salary: {app.salary}</p>
+              )}
+              {app.source && (
+                <p className="text-sm text-gray-500">Source: {app.source}</p>
+              )}
+              {app.jobUrl && (
+                <a
+                  href={app.jobUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-blue-600 hover:underline"
+                >
+                  Job Posting
+                </a>
+              )}
+              {app.notes && (
+                <p className="text-sm text-gray-500">Notes: {app.notes}</p>
+              )}
               <form action={updateStatus} className="mt-2 flex gap-2">
                 <input type="hidden" name="id" value={app.id} />
                 <select

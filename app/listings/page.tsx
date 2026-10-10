@@ -1,8 +1,12 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { syncListings, createFromListing } from "@/app/actions";
+import { connection } from "next/server";
+import { SubmitButton } from "@/app/components/submit-button";
 
 export default async function ListingsPage() {
+  await connection();
+
   const listings = await prisma.jobListing.findMany({
     orderBy: { postedAt: "desc" },
     take: 50,
@@ -18,12 +22,12 @@ export default async function ListingsPage() {
       </div>
 
       <form action={syncListings} className="mb-6">
-        <button
-          type="submit"
+        <SubmitButton
+          pendingText="Refreshing..."
           className="bg-black px-4 py-2 rounded text-white cursor-pointer transition-colors hover:bg-zinc-800"
         >
           Refresh Listings
-        </button>
+        </SubmitButton>
       </form>
 
       {listings.length === 0 ? (
@@ -52,12 +56,12 @@ export default async function ListingsPage() {
               ) : (
                 <form action={createFromListing} className="mt-2">
                   <input type="hidden" name="id" value={listing.id} />
-                  <button
-                    type="submit"
+                  <SubmitButton
+                    pendingText="Adding..."
                     className="px-3 py-1 rounded border text-sm cursor-pointer transition-colors hover:bg-zinc-100"
                   >
                     Add as application
-                  </button>
+                  </SubmitButton>
                 </form>
               )}
             </li>
