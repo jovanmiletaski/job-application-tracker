@@ -124,6 +124,13 @@ export default async function Home() {
                 >
                   Save
                 </button>
+                <Link
+                  href={`/applications/${app.id}`}
+                  className="inline-flex items-center px-3 py-1 rounded border text-sm transition-colors hover:bg-zinc-100"
+                >
+                  Edit
+                </Link>
+
                 <button
                   type="submit"
                   formAction={deleteApplication}

@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { Status } from "@/app/generated/prisma/client";
 import { SOURCES } from "@/lib/sources";
 import { fetchListings } from "@/lib/feed";
+import { redirect } from "next/navigation";
 
 export async function createApplication(formData: FormData) {
   const company = formData.get("company") as string;
@@ -111,4 +112,24 @@ export async function createFromListing(formData: FormData) {
   });
   revalidatePath("/");
   revalidatePath("/listings");
+}
+
+export async function updateApplication(formData: FormData) {
+  const id = formData.get("id") as string;
+
+  await prisma.application.update({
+    where: { id },
+    data: {
+      company: formData.get("company") as string,
+      position: formData.get("position") as string,
+      status: formData.get("status") as Status,
+      jobUrl: (formData.get("jobUrl") as string) || null,
+      source: (formData.get("source") as string) || null,
+      location: (formData.get("location") as string) || null,
+      salary: (formData.get("salary") as string) || null,
+      notes: (formData.get("notes") as string) || null,
+    },
+  });
+  revalidatePath("/");
+  redirect("/");
 }
