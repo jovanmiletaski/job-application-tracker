@@ -21,8 +21,8 @@ Listings are imported from public, key-free endpoints. Each source is one entry 
 
 | Source                                                         | What it is                                                                                   | Notes                                                                                  |
 | -------------------------------------------------------------- | -------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| [Simplify](https://github.com/SimplifyJobs/New-Grad-Positions) | Aggregator publishing new-grad and internship listings as JSON in public GitHub repositories | Contains historical entries, so only active listings from the last 7 days are imported |
-| [Greenhouse](https://developers.greenhouse.io/job-board.html)  | Applicant tracking system; each company's job board exposes its open roles as JSON           | First-party data, open roles only                                                      |
+| [Arbeitnow](https://www.arbeitnow.com/api) | Job board API covering Germany and remote roles across Europe | No key required |
+| [Greenhouse](https://developers.greenhouse.io/job-board.html) | Applicant tracking system; each company's job board exposes its open roles as JSON | First-party data, open roles only; sources can filter by location |                                                  |
 
 Adding a source means adding one entry to `SOURCES` and one function in
 [`lib/feed.ts`](lib/feed.ts) that maps the response to the shared `Listing` type.
