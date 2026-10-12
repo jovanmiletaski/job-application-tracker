@@ -11,16 +11,18 @@ A web app for tracking job applications: which company, which position, where yo
 - Browse job listings imported from public job feeds, and turn any listing into an
   application with one click
 - Listings already applied to are marked, so the same job is never added twice
+- Edit any field of an existing application on its own page
+- Filter listings by position and location
 
 ## Job sources
 
 Listings are imported from public, key-free endpoints. Each source is one entry in
 [`lib/sources.ts`](lib/sources.ts):
 
-| Source | What it is | Notes |
-| --- | --- | --- |
+| Source                                                         | What it is                                                                                   | Notes                                                                                  |
+| -------------------------------------------------------------- | -------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
 | [Simplify](https://github.com/SimplifyJobs/New-Grad-Positions) | Aggregator publishing new-grad and internship listings as JSON in public GitHub repositories | Contains historical entries, so only active listings from the last 7 days are imported |
-| [Greenhouse](https://developers.greenhouse.io/job-board.html) | Applicant tracking system; each company's job board exposes its open roles as JSON | First-party data, open roles only |
+| [Greenhouse](https://developers.greenhouse.io/job-board.html)  | Applicant tracking system; each company's job board exposes its open roles as JSON           | First-party data, open roles only                                                      |
 
 Adding a source means adding one entry to `SOURCES` and one function in
 [`lib/feed.ts`](lib/feed.ts) that maps the response to the shared `Listing` type.
@@ -54,6 +56,7 @@ Copy the example file and fill in your own database credentials:
 ```bash
 cp .env.example .env
 ```
+
 ```
 DATABASE_URL="postgresql://USER:PASSWORD@localhost:5432/DATABASE"
 ```
@@ -63,6 +66,7 @@ DATABASE_URL="postgresql://USER:PASSWORD@localhost:5432/DATABASE"
 ```bash
 npx prisma migrate dev
 ```
+
 This applies the migrations from `prisma/migrations` and generates the Prisma client.
 
 ### 4. Start the development server
@@ -70,6 +74,7 @@ This applies the migrations from `prisma/migrations` and generates the Prisma cl
 ```bash
 npm run dev
 ```
+
 Open [http://localhost:3000](http://localhost:3000), then go to **Browse job listings**
 and click **Refresh Listings** to import the first batch of job ads.
 
@@ -87,8 +92,13 @@ and click **Refresh Listings** to import the first batch of job ads.
 app/
   actions.ts          Server Actions: create, update status, delete, sync, apply
   page.tsx            Application list and the form
+  applications/
+    [id]/page.tsx     Edit a single application
   listings/
-    page.tsx          Imported job listings
+    page.tsx          Imported a job listings with filters
+    error.tsx         Shown when a job source fails
+  components/
+    submit-button.tsx Submit button with a pending state
 lib/
   prisma.ts           Prisma client instance
   sources.ts          The list of job sources

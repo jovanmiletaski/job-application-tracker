@@ -3,11 +3,25 @@ import { prisma } from "@/lib/prisma";
 import { syncListings, createFromListing } from "@/app/actions";
 import { connection } from "next/server";
 import { SubmitButton } from "@/app/components/submit-button";
+import Form from "next/form";
 
-export default async function ListingsPage() {
+export default async function ListingsPage({
+  searchParams,
+}: PageProps<"/listings">) {
   await connection();
 
+  const { q, location } = await searchParams;
+
+  const query = typeof q === "string" ? q : "";
+  const locationQuery = typeof location === "string" ? location : "";
+
   const listings = await prisma.jobListing.findMany({
+    where: {
+      position: query ? { contains: query, mode: "insensitive" } : undefined,
+      location: locationQuery
+        ? { contains: locationQuery, mode: "insensitive" }
+        : undefined,
+    },
     orderBy: { postedAt: "desc" },
     take: 50,
   });
@@ -30,8 +44,48 @@ export default async function ListingsPage() {
         </SubmitButton>
       </form>
 
+      <Form
+        action="/listings"
+        className="mb-6 flex flex-wrap gap-2"
+        key={`${query}|${locationQuery}`}
+      >
+        <input
+          name="q"
+          defaultValue={query}
+          placeholder="Position contains..."
+          className="border rounded px-3 py-2"
+        />
+
+        <input
+          name="location"
+          defaultValue={locationQuery}
+          placeholder="Location contains..."
+          className="border rounded px-3 py-2"
+        />
+
+        <SubmitButton
+          pendingText="Searching..."
+          className="px-4 py-2 rounded border cursor-pointer transition-colors hover:bg-zinc-100 disabled:opacity-60"
+        >
+          Search
+        </SubmitButton>
+        {(query || locationQuery) && (
+          <Link
+            href="/listings"
+            className="inline-flex items-center px-4 py-2 text-sm text-blue-600 hover:underline"
+          >
+            Clear
+          </Link>
+        )}
+      </Form>
+
+      <p className="mb-3 text-sm text-gray-500">
+        {listings.length} {listings.length === 1 ? "listing" : "listings"}
+        {listings.length === 50 && " (showing first 50)"}
+      </p>
+
       {listings.length === 0 ? (
-        <p className="text-gray-500">No listings yet. Click Refresh</p>
+        <p className="text-gray-500">No listings match your filters</p>
       ) : (
         <ul className="space-y-3">
           {listings.map((listing) => (
