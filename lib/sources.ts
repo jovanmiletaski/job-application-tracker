@@ -1,17 +1,27 @@
 export type Source =
-  | { kind: "simplify"; name: string; url: string }
-  | { kind: "greenhouse"; name: string; board: string };
+  | { kind: "arbeitnow"; name: string }
+  | { kind: "greenhouse"; name: string; board: string; match?: string };
 
 export const SOURCES: Source[] = [
   {
-    kind: "simplify",
-    name: "SimplifyJobs/New-Grad-Positions",
-    url: "https://raw.githubusercontent.com/SimplifyJobs/New-Grad-Positions/dev/.github/scripts/listings.json",
+    kind: "greenhouse",
+    name: "Nordeus",
+    board: "nordeus",
   },
   {
-    kind: "simplify",
-    name: "SimplifyJobs/Summer2026-Internships",
-    url: "https://raw.githubusercontent.com/SimplifyJobs/Summer2026-Internships/dev/.github/scripts/listings.json",
+    kind: "greenhouse",
+    name: "JetBrains",
+    board: "jetbrains",
+    match: "Serbia",
   },
-  { kind: "greenhouse", name: "Stripe", board: "stripe" },
+  {
+    kind: "greenhouse",
+    name: "Databricks",
+    board: "databricks",
+    match: "Serbia",
+  },
+  { kind: "greenhouse", name: "Wolt", board: "wolt" },
+  { kind: "greenhouse", name: "SumUp", board: "sumup" },
+  { kind: "greenhouse", name: "N26", board: "n26" },
+  { kind: "arbeitnow", name: "Arbeitnow" },
 ];

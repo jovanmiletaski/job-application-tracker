@@ -111,7 +111,6 @@ prisma/
 ## Roadmap
 
 - Edit an existing application
-- Filter and paginate listings by category and location
 - Filter applications by status
 - Follow-up reminders
 - More job sources (Lever boards, Arbeitnow)

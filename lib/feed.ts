@@ -1,17 +1,5 @@
 import { Source } from "./sources";
 
-type SimplifyItem = {
-  id: string;
-  company_name: string;
-  title: string;
-  url: string;
-  locations?: string[];
-  category?: string;
-  date_posted: number;
-  active: boolean;
-  is_visible?: boolean;
-};
-
 type GreenhouseJob = {
   id: number;
   title: string;
@@ -34,33 +22,40 @@ export type Listing = {
   postedAt: Date;
 };
 
-const MAX_AGE_DAYS = 7;
+type ArbeitnowJob = {
+  slug: string;
+  company_name: string;
+  title: string;
+  url: string;
+  location?: string;
+  remote?: boolean;
+  created_at: number;
+  tags?: string[];
+};
 
-async function fetchSimplify(
-  source: Extract<Source, { kind: "simplify" }>,
+async function fetchArbeitnow(
+  source: Extract<Source, { kind: "arbeitnow" }>,
 ): Promise<Listing[]> {
-  const res = await fetch(source.url, { cache: "no-store" });
+  const res = await fetch("https://www.arbeitnow.com/api/job-board-api", {
+    cache: "no-store",
+  });
 
   if (!res.ok) {
     throw new Error(`${source.name}: ${res.status} ${res.statusText}`);
   }
 
-  const items = (await res.json()) as SimplifyItem[];
-  const cutoff = Date.now() / 1000 - MAX_AGE_DAYS * 24 * 60 * 60;
+  const data = (await res.json()) as { data: ArbeitnowJob[] };
 
-  return items
-    .filter((item) => item.active && item.is_visible !== false)
-    .filter((item) => item.date_posted > cutoff)
-    .map((item) => ({
-      source: source.name,
-      externalId: item.id,
-      company: item.company_name,
-      position: item.title,
-      url: item.url,
-      location: item.locations?.[0] ?? null,
-      category: item.category ?? null,
-      postedAt: new Date(item.date_posted * 1000),
-    }));
+  return data.data.map((job) => ({
+    source: source.name,
+    externalId: job.slug,
+    company: job.company_name,
+    position: job.title,
+    url: job.url,
+    location: job.remote ? "Remote" : (job.location ?? null),
+    category: job.tags?.[0] ?? null,
+    postedAt: new Date(job.created_at * 1000),
+  }));
 }
 
 async function fetchGreenhouse(
@@ -77,7 +72,12 @@ async function fetchGreenhouse(
 
   const data = (await res.json()) as { jobs: GreenhouseJob[] };
 
-  return data.jobs.map((job) => ({
+  const match = source.match;
+  const jobs = match
+    ? data.jobs.filter((job) => job.location?.name?.includes(match))
+    : data.jobs;
+
+  return jobs.map((job) => ({
     source: source.name,
     externalId: String(job.id),
     company: source.name,
@@ -90,9 +90,9 @@ async function fetchGreenhouse(
 }
 export async function fetchListings(source: Source): Promise<Listing[]> {
   switch (source.kind) {
-    case "simplify":
-      return fetchSimplify(source);
     case "greenhouse":
       return fetchGreenhouse(source);
+    case "arbeitnow":
+      return fetchArbeitnow(source);
   }
 }
